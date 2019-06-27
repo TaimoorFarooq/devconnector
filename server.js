@@ -1,5 +1,7 @@
 const express = require('express');
-const mysql = require('mysql'); 
+const db = require('./config/Database');
+const bodyParser = require('body-parser');
+const passport = require('passport');
 
 const users = require('./routes/api/users');
 const profile = require('./routes/api/profile');
@@ -7,13 +9,10 @@ const posts = require('./routes/api/posts');
 
 const app = express();
 
-// DB Connect 
-const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'dev_admin',
-    password: '123456',
-    database: 'devconnector'
-});
+// Body Parser middleware
+app.use(bodyParser.urlencoded({extended: false}));
+app.use(bodyParser.json());
+
 db.connect((err) => {
     if(err) {
         throw err;
@@ -21,12 +20,16 @@ db.connect((err) => {
     console.log('Mysql Connected...')
 });
 
+// Passport middleware
+app.use(passport.initialize());
+
+// Passport Config
+require('./config/passport')(passport);
+
 // Use Routes
 app.use('/api/users', users);
 app.use('/api/profile', profile);
 app.use('/api/posts', posts);
-
-app.get('/', (req, res) => res.send('Hello World!'));
 
 const port = process.env.PORT || 5000;
 
